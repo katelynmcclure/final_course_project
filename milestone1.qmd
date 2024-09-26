@@ -7,6 +7,24 @@ format:
     embed-resources: true
 ---
 
-1. Katelyn McClure, Kynan Desouza-Chen
+## 1 - Names
 
-2. 
+Katelyn McClure, Kynan Desouza-Chen
+
+## 2 - Project Topic
+
+
+
+## 3 - Questions
+
+
+## 4 - Data
+
+
+## 5 - Data Context
+
+
+## 6 - Data Codebook
+
+
+## 7 - Plan
