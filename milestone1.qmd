@@ -13,10 +13,17 @@ Katelyn McClure, Kynan Desouza-Chen
 
 ## 2 - Project Topic
 
-
+We are going to analyze the collected game data from the Macalester Volleyball team.
 
 ## 3 - Questions
 
+*We reached out to the Macalester Volleyball coaches to ask if they had any specific questions they wanted us to investigate for them. If/when they reply, our questions may change.*
+
+1. Does class year positively affect the number of kills, aces, points, points per set, etc? (Do older players (that play the same position) perform better than younger players?)
+
+2. How has the team performed over time? Have they improved? (Could pick MIAC teams or any team they have played consistently over the years and compare Mac performance over time.) 
+
+3. How evenly distributed is playing time (sets/matches played) among the players? Are there any trends among positions/class years/heights/etc?
 
 ## 4 - Data
 
@@ -26,5 +33,66 @@ Katelyn McClure, Kynan Desouza-Chen
 
 ## 6 - Data Codebook
 
+### Match information
+
+**Date:** date of the match
+
+**Opponent:** name of the opposing team (vs = Mac home game, at = Mac away game)
+
+**W/L:** win or loss (W = win, L = loss)
+
+**SP:** # of sets played (3, 4, or 5)
+
+**PTS:** # of points scored by Macalester (over the entire match)
+
+### Offense
+
+**K:** # of kills (immediate point scored, a few scenarios)
+
+**E:** # of attack errors (hit ball out of bounds, blocked by the other team right back to the person who hit the ball, a few other scenarios)
+
+**TA:** # of total attempts (sum of kills, errors, and zero attacks)
+
+**PCT:** hitting percentage ( (total kills - total errors) / total attempts )
+
+### Passing
+
+**AST:** # of assists (when a player passes the ball to someone who kills the ball)
+
+**DIG:** # of digs (player keeps the ball from hitting the floor, usually with their forearms to pass to someone else on their team)
+
+**BHE:** # of ball handling errors (lifted ball, double hit, thrown ball any time other than a serve reception)
+
+### Service
+
+**SA:** # of service ace (serve that is not returned by the other team)
+
+**SE:** # of service error (failed serve)
+
+**RE:** # of receiving error (if the serve hits the floor in the area of a player)
+
+### Blocking
+
+**BS:** # of block solos (single player blocks the ball back onto the opponents side leading to a point)
+
+**BA:** # of block assists (two or three players block the ball back onto the opponents side leading to a point)
+
+**BE:** # of block errors (errors made while attempting to block an opponent's attack)
+
+**TB:** # of total blocks
 
 ## 7 - Plan
+
+Our question #2 (How has the team performed over time? Have they improved?) could be addressed with the team match-by-match Macalester statistics. Our dataset is only 2024 data (which is still being added to as the season is ongoing) so to see any changes over time, we would have to download the match-by-match data for each desired season. If we wanted to track Mac performance against a certain team, we could filter the dataset to just the row that corresponds to that opponent. 
+
+Steps:
+
+0. Wait for a response from the coaching staff to see if they have any specific questions they want us to investigate (email sent Thurs 9/26 in the afternoon)
+
+1. Scrape and store Macalester match-by-match statistics for the past 10 years (2013 - 2023 complete seasons, likely skipping the 2020 season due to lack of meaningful data)
+
+2. Join the datasets into a single dataframe
+
+3. Make exploratory plots for the offense/passing/service/blocking statistics to see if any trends emerge, or if they are relatively consistent. Add up season totals or calculate season averages (total / # games) to get a better picture of the season performance.
+
+4. Pick an opponent that Mac has played each year and filter the data to only include matches between Mac and that opponent and repeat step 3. Any differences? Could they be explained?

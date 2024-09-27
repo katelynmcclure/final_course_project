@@ -3087,9 +3087,16 @@ vertical-align: -.125em;
 </section>
 <section id="project-topic" class="level2">
 <h2 class="anchored" data-anchor-id="project-topic">2 - Project Topic</h2>
+<p>We are going to analyze the collected game data from the Macalester Volleyball team.</p>
 </section>
 <section id="questions" class="level2">
 <h2 class="anchored" data-anchor-id="questions">3 - Questions</h2>
+<p><em>We reached out to the Macalester Volleyball coaches to ask if they had any specific questions they wanted us to investigate for them. If/when they reply, our questions may change.</em></p>
+<ol type="1">
+<li><p>Does class year positively affect the number of kills, aces, points, points per set, etc? (Do older players (that play the same position) perform better than younger players?)</p></li>
+<li><p>How has the team performed over time? Have they improved? (Could pick MIAC teams or any team they have played consistently over the years and compare Mac performance over time.)</p></li>
+<li><p>How evenly distributed is playing time (sets/matches played) among the players? Are there any trends among positions/class years/heights/etc?</p></li>
+</ol>
 </section>
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">4 - Data</h2>
@@ -3099,9 +3106,52 @@ vertical-align: -.125em;
 </section>
 <section id="data-codebook" class="level2">
 <h2 class="anchored" data-anchor-id="data-codebook">6 - Data Codebook</h2>
+<section id="match-information" class="level3">
+<h3 class="anchored" data-anchor-id="match-information">Match information</h3>
+<p><strong>Date:</strong> date of the match</p>
+<p><strong>Opponent:</strong> name of the opposing team (vs = Mac home game, at = Mac away game)</p>
+<p><strong>W/L:</strong> win or loss (W = win, L = loss)</p>
+<p><strong>SP:</strong> # of sets played (3, 4, or 5)</p>
+<p><strong>PTS:</strong> # of points scored by Macalester (over the entire match)</p>
+</section>
+<section id="offense" class="level3">
+<h3 class="anchored" data-anchor-id="offense">Offense</h3>
+<p><strong>K:</strong> # of kills (immediate point scored, a few scenarios)</p>
+<p><strong>E:</strong> # of attack errors (hit ball out of bounds, blocked by the other team right back to the person who hit the ball, a few other scenarios)</p>
+<p><strong>TA:</strong> # of total attempts (sum of kills, errors, and zero attacks)</p>
+<p><strong>PCT:</strong> hitting percentage ( (total kills - total errors) / total attempts )</p>
+</section>
+<section id="passing" class="level3">
+<h3 class="anchored" data-anchor-id="passing">Passing</h3>
+<p><strong>AST:</strong> # of assists (when a player passes the ball to someone who kills the ball)</p>
+<p><strong>DIG:</strong> # of digs (player keeps the ball from hitting the floor, usually with their forearms to pass to someone else on their team)</p>
+<p><strong>BHE:</strong> # of ball handling errors (lifted ball, double hit, thrown ball any time other than a serve reception)</p>
+</section>
+<section id="service" class="level3">
+<h3 class="anchored" data-anchor-id="service">Service</h3>
+<p><strong>SA:</strong> # of service ace (serve that is not returned by the other team)</p>
+<p><strong>SE:</strong> # of service error (failed serve)</p>
+<p><strong>RE:</strong> # of receiving error (if the serve hits the floor in the area of a player)</p>
+</section>
+<section id="blocking" class="level3">
+<h3 class="anchored" data-anchor-id="blocking">Blocking</h3>
+<p><strong>BS:</strong> # of block solos (single player blocks the ball back onto the opponents side leading to a point)</p>
+<p><strong>BA:</strong> # of block assists (two or three players block the ball back onto the opponents side leading to a point)</p>
+<p><strong>BE:</strong> # of block errors (errors made while attempting to block an opponent’s attack)</p>
+<p><strong>TB:</strong> # of total blocks</p>
+</section>
 </section>
 <section id="plan" class="level2">
 <h2 class="anchored" data-anchor-id="plan">7 - Plan</h2>
+<p>Our question #2 (How has the team performed over time? Have they improved?) could be addressed with the team match-by-match Macalester statistics. Our dataset is only 2024 data (which is still being added to as the season is ongoing) so to see any changes over time, we would have to download the match-by-match data for each desired season. If we wanted to track Mac performance against a certain team, we could filter the dataset to just the row that corresponds to that opponent.</p>
+<p>Steps:</p>
+<ol start="0" type="1">
+<li><p>Wait for a response from the coaching staff to see if they have any specific questions they want us to investigate (email sent Thurs 9/26 in the afternoon)</p></li>
+<li><p>Scrape and store Macalester match-by-match statistics for the past 10 years (2013 - 2023 complete seasons, likely skipping the 2020 season due to lack of meaningful data)</p></li>
+<li><p>Join the datasets into a single dataframe</p></li>
+<li><p>Make exploratory plots for the offense/passing/service/blocking statistics to see if any trends emerge, or if they are relatively consistent. Add up season totals or calculate season averages (total / # games) to get a better picture of the season performance.</p></li>
+<li><p>Pick an opponent that Mac has played each year and filter the data to only include matches between Mac and that opponent and repeat step 3. Any differences? Could they be explained?</p></li>
+</ol>
 </section>
 
 </main>
