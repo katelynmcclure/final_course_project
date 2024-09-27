@@ -27,9 +27,38 @@ We are going to analyze the collected game data from the Macalester Volleyball t
 
 ## 4 - Data
 
+```{r libraries, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+```{r read-data}
+# raw individual player data
+read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2023") %>%
+  html_table() %>%
+  .[[4]] %>%
+  head()
+
+# raw per match data
+per_match_23 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2023") %>%
+  html_table() %>%
+  .[[6]]
+```
+
+```{r exploratory viz}
+exploratory_density <- function(var){
+  ggplot(data = per_match_23) +
+    geom_density(aes(x = var, fill = `W/L`))
+}
+
+ggplot(per_match_23, aes(x = PCT, fill = `W/L`)) +
+  geom_density()
+```
+
 
 ## 5 - Data Context
 
+  Our first idea for this project was to investigate something related to Macalester athletics. The first dataset we are using is about the team statistics from each game of the 2023 (more years may be incorporated later) Macalester women’s volleyball team. Each row of the dataset is the team statistics for one game, and the variables are a variety of stats counted by student volunteers at each of the games, presumably because the team wants to keep track of how they are performing and what areas they could stand to improve in. It also includes whether or not Macalester won the game, when the game was played, and whether the game was home, away, or at a tournament (which doesn’t count as either home or away apparently). 
 
 ## 6 - Data Codebook
 
