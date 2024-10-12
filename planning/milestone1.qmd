@@ -125,3 +125,8 @@ Steps:
 3. Make exploratory plots for the offense/passing/service/blocking statistics to see if any trends emerge, or if they are relatively consistent. Add up season totals or calculate season averages (total / # games) to get a better picture of the season performance.
 
 4. Pick an opponent that Mac has played each year and filter the data to only include matches between Mac and that opponent and repeat step 3. Any differences? Could they be explained?
+
+```{r}
+sessionInfo()
+```
+
