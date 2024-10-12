@@ -1,0 +1,54 @@
+---
+title: "Milestone 2"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Plan from Milestone 1
+
+Our question #2 (How has the team performed over time? Have they improved?) could be addressed with the team match-by-match Macalester statistics. Our dataset is only 2024 data (which is still being added to as the season is ongoing) so to see any changes over time, we would have to download the match-by-match data for each desired season. If we wanted to track Mac performance against a certain team, we could filter the dataset to just the row that corresponds to that opponent. 
+
+Steps:
+
+0. Wait for a response from the coaching staff to see if they have any specific questions they want us to investigate (email sent Thurs 9/26 in the afternoon)
+
+1. Scrape and store Macalester match-by-match statistics for the past 10 years (2013 - 2023 complete seasons, likely skipping the 2020 season due to lack of meaningful data)
+
+2. Join the datasets into a single dataframe
+
+3. Make exploratory plots for the offense/passing/service/blocking statistics to see if any trends emerge, or if they are relatively consistent. Add up season totals or calculate season averages (total / # games) to get a better picture of the season performance.
+
+4. Pick an opponent that Mac has played each year and filter the data to only include matches between Mac and that opponent and repeat step 3. Any differences? Could they be explained?
+
+## Step 0
+
+We met with head coach Mary Johnston and assistant coach Keelin Severtson on 10/4 to touch base. They told us that they would love insight on the following:
+
+1. Looking at hitting percentage, SR rating ( Mac Stat sheet data), Service Ace to Errors compared if we win,  Are we hitting better than opponents? Are we serving more aces to errors than opponents? Is Passing rating above or close to a 2? How far away 2 passing rating are we and still winning?  
+
+2. Tracking starters over time (they sent a list of players that they consider to be starters, could be interesting to focus on the seniors)
+
+They gave us access to their practice stats Google sheets. The 2024 season has the most information (Keelin Severtson is new this year and has been keeping track of more stats). The season is still ongoing, however, and we currently only have access to the games that happened as of 10/4 (we have a copy of the data). 
+
+## Step 1
+
+## Step 2
+
+## Step 3
+
+## Step 4
+
+## Plan for Further Pursuing our Broad Questions
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
