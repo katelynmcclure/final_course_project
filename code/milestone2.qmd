@@ -38,6 +38,29 @@ We met with head coach Mary Johnston and assistant coach Keelin Severtson on 10/
 They gave us access to their practice stats Google sheets. The 2024 season has the most information (Keelin Severtson is new this year and has been keeping track of more stats). The season is still ongoing, however, and we currently only have access to the games that happened as of 10/4 (we have a copy of the data). 
 
 ## Step 1
+```{r load-data}
+library(tidyverse)
+library(rvest)
+
+game_stats <- read_csv("../data/Stat 212 Volleyball Stats 2024 - Game Stats.csv")
+
+per_match_24 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2024") %>%
+  html_table() %>%
+  .[[6]]
+```
+
+```{r clean-data}
+library(fuzzyjoin)
+
+clean_game_stats <- game_stats%>%
+  select(c(Player...1, Pass, Game...3)) %>%
+  group_by(Game...3) %>%
+  summarize(mean_pass = mean(Pass))
+
+# Some manual editing required, but this seems to be a potentially usable function
+fuzzy_left_join(per_match_24, clean_game_stats, match_fun = str_detect, by = c(Opponent = "Game...3"))
+```
+
 
 ## Step 2
 
