@@ -85,7 +85,7 @@ We met with head coach Mary Johnston and assistant coach Keelin Severtson on 10/
 
 They gave us access to their practice stats Google sheets. The 2024 season has the most information (Keelin Severtson is new this year and has been keeping track of more stats). The season is still ongoing, however, and we currently only have access to the games that happened as of 10/4 (we have a copy of the data). 
 
-Because of this, we're modifying our steps above to focus more on the questions that the volleyball coaching staff want answers to. In step 1, we'll import the Google Sheets data for the 2024 season into RStudio. In step 2, we'll combine this data with data from the Macalester Athletics website. In step 3, we'll make exploratory plots to investigate the relationship between hitting percentage (from the Mac Athletics website), SR Rating (from the Google Sheet data), and Service aces and errors (from the Mac Athletics website).
+Because of this, we're modifying our steps above to focus more on the questions that the volleyball coaching staff want answers to. In **step 1**, we'll import the Google Sheets data for the 2024 season into RStudio. In **step 2**, we'll combine this data with data from the Macalester Athletics website. In **step 3**, we'll make exploratory plots to investigate the relationship between hitting percentage (from the Mac Athletics website), SR Rating (from the Google Sheet data), and Service aces and errors (from the Mac Athletics website).
 
 ## Step 1
 ```{r load-data}
@@ -117,6 +117,18 @@ prelim_game_stats <- fuzzy_left_join(per_match_24, clean_game_stats, match_fun =
   geom_boxplot(aes(x = mean_pass, fill = `W/L`))
 
 
+```
+
+```{r}
+# Reshape the data into a long format
+prelim_game_stats_long <- prelim_game_stats %>%
+  pivot_longer(cols = c(SE, SA), names_to = "Metric", values_to = "Value") 
+
+ggplot(prelim_game_stats_long, aes(x = Opponent, y = Value, fill = Metric, color = `W/L`)) +
+  geom_col() +
+  scale_fill_manual(values = c("SE" = "lightpink1", "SA" = "lightsteelblue")) + 
+  scale_color_manual(values = c("W" = "blue", "L" = "red")) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
 
