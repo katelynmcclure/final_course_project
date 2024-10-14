@@ -11,6 +11,56 @@ format:
 library(tidyverse)
 ```
 
+## Data Codebook
+
+### Match information
+
+**Date:** date of the match
+
+**Opponent:** name of the opposing team (vs = Mac home game, at = Mac away game)
+
+**W/L:** win or loss (W = win, L = loss)
+
+**SP:** # of sets played (3, 4, or 5)
+
+**PTS:** # of points scored by Macalester (over the entire match)
+
+### Offense
+
+**K:** # of kills (immediate point scored, a few scenarios)
+
+**E:** # of attack errors (hit ball out of bounds, blocked by the other team right back to the person who hit the ball, a few other scenarios)
+
+**TA:** # of total attempts (sum of kills, errors, and zero attacks)
+
+**PCT:** hitting percentage ( (total kills - total errors) / total attempts )
+
+### Passing
+
+**AST:** # of assists (when a player passes the ball to someone who kills the ball)
+
+**DIG:** # of digs (player keeps the ball from hitting the floor, usually with their forearms to pass to someone else on their team)
+
+**BHE:** # of ball handling errors (lifted ball, double hit, thrown ball any time other than a serve reception)
+
+### Service
+
+**SA:** # of service ace (serve that is not returned by the other team)
+
+**SE:** # of service error (failed serve)
+
+**RE:** # of receiving error (if the serve hits the floor in the area of a player)
+
+### Blocking
+
+**BS:** # of block solos (single player blocks the ball back onto the opponents side leading to a point)
+
+**BA:** # of block assists (two or three players block the ball back onto the opponents side leading to a point)
+
+**BE:** # of block errors (errors made while attempting to block an opponent's attack)
+
+**TB:** # of total blocks
+
 ## Plan from Milestone 1
 
 Our question #2 (How has the team performed over time? Have they improved?) could be addressed with the team match-by-match Macalester statistics. Our dataset is only 2024 data (which is still being added to as the season is ongoing) so to see any changes over time, we would have to download the match-by-match data for each desired season. If we wanted to track Mac performance against a certain team, we could filter the dataset to just the row that corresponds to that opponent. 
@@ -25,8 +75,6 @@ Steps:
 
 3. Make exploratory plots for the offense/passing/service/blocking statistics to see if any trends emerge, or if they are relatively consistent. Add up season totals or calculate season averages (total / # games) to get a better picture of the season performance.
 
-4. Pick an opponent that Mac has played each year and filter the data to only include matches between Mac and that opponent and repeat step 3. Any differences? Could they be explained?
-
 ## Step 0
 
 We met with head coach Mary Johnston and assistant coach Keelin Severtson on 10/4 to touch base. They told us that they would love insight on the following:
@@ -36,6 +84,8 @@ We met with head coach Mary Johnston and assistant coach Keelin Severtson on 10/
 2. Tracking starters over time (they sent a list of players that they consider to be starters, could be interesting to focus on the seniors)
 
 They gave us access to their practice stats Google sheets. The 2024 season has the most information (Keelin Severtson is new this year and has been keeping track of more stats). The season is still ongoing, however, and we currently only have access to the games that happened as of 10/4 (we have a copy of the data). 
+
+Because of this, we're modifying our steps above to focus more on the questions that the volleyball coaching staff want answers to. In step 1, we'll import the Google Sheets data for the 2024 season into RStudio. In step 2, we'll combine this data with data from the Macalester Athletics website. In step 3, we'll make exploratory plots to investigate the relationship between hitting percentage (from the Mac Athletics website), SR Rating (from the Google Sheet data), and Service aces and errors (from the Mac Athletics website).
 
 ## Step 1
 ```{r load-data}
@@ -53,8 +103,8 @@ per_match_24 <- read_html("https://athletics.macalester.edu/sports/womens-volley
 library(fuzzyjoin)
 
 clean_game_stats <- game_stats%>%
-  select(c(Player...1, Pass, Game...3)) %>%
-  group_by(Game...3) %>%
+  select(c(`Player...1`, Pass, `Game...3`)) %>%
+  group_by(`Game...3`) %>%
   summarize(mean_pass = mean(Pass))
 
 # Some manual editing required, but this seems to be a potentially usable function
@@ -66,9 +116,26 @@ fuzzy_left_join(per_match_24, clean_game_stats, match_fun = str_detect, by = c(O
 
 ## Step 3
 
-## Step 4
-
 ## Plan for Further Pursuing our Broad Questions
+
+Do your 2-3 original broad questions need to be revised?
+What additional information and context (news articles, journal articles, expert interview, etc.) do you need to understand the data?
+Is it time to start looking for additional datasets?
+
+### Question 1: Hitting %, SR Rating, Service Aces, Service Errors 
+- Step 1: Fix the str_detect issue with "Luther" schools -- "Luther", "Bethany Lutheran", and "Martin Luther" 
+- Step 2: Create a model that predicts the outcome of a volleyball game (W/L) based on hitting percentage, SR Rating, # of Service aces and # of service errors? How accurate is this model? (Think back to STAT253 models, like the one that tried to predict whether or not it would rain based off of weather attributes.)
+
+### Question 2: Tracking Seniors over Time
+Looking at data from the Macalester Athletics website (rather than the Google Sheets data), can we track the seniors and how they've played over time? Have their average stats improved over time?
+
+**SENIORS:** **Stepanie Geber** - 4 yr starter, **Adisa Preston** - 4 yr starter, **Gwen Wooten** - Started 1st year and 2nd year, **Nicole Norton** - started 1st, some of 2nd and 3rd and now starting in her 4th year, **Grace Galer** - starting in her senior year, **Torrance Williams** - 4 yr starter- Passing, **Jill MacInnis** - has never started but played in a number of matches in her 4 years
+
+- Step 1: Import the data from the Macalester Athletics website for the past 4 years (2024, 2023, 2022, 2021)
+- Step 2: Filter the data to only include the seniors
+- Step 3: Calculate the average stats for each senior for each year
+- Step 4: Make visualizations to see any trends
+
 
 ## Session Info
 
