@@ -62,10 +62,18 @@ clean_game_stats <- game_stats %>%
 prelim_game_stats <- fuzzy_left_join(per_match_24, clean_game_stats, match_fun = str_detect, by = c(Opponent = "school")) %>%
   filter(!is.na(school))
 
-  ggplot(prelim_game_stats) +
-  geom_boxplot(aes(x = mean_pass, fill = `W/L`))
 
+my_wl_boxplot <- function(df, stat, win = `W/L`){
+  df %>%
+  ggplot() +
+    geom_boxplot(aes(x = {{stat}}, fill = {{win}}))
+}
 
+my_wl_boxplot(prelim_game_stats, mean_pass)
+my_wl_boxplot(prelim_game_stats, PCT)
+
+ggplot(data = prelim_game_stats) +
+  geom_boxplot(aes(SA-SE, color = `W/L`))
 ```
 
 
