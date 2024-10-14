@@ -52,13 +52,20 @@ per_match_24 <- read_html("https://athletics.macalester.edu/sports/womens-volley
 ```{r clean-data}
 library(fuzzyjoin)
 
-clean_game_stats <- game_stats%>%
+clean_game_stats <- game_stats %>%
   select(c(Player...1, Pass, Game...3)) %>%
   group_by(Game...3) %>%
-  summarize(mean_pass = mean(Pass))
+  summarize(mean_pass = mean(Pass)) %>%
+  mutate(school = c("Augustana", "Bethany Lutheran", "Bethel", "Carthage", "Concordia", "Cornell", "Dominican", "Grinnell", "Lewis & Clark", "vs Luther", "Martin Luther", "Morris", "Monmouth", "Neb. Wesleyan", "Northland", "St. Norbert", "Superior"))
 
 # Some manual editing required, but this seems to be a potentially usable function
-fuzzy_left_join(per_match_24, clean_game_stats, match_fun = str_detect, by = c(Opponent = "Game...3"))
+prelim_game_stats <- fuzzy_left_join(per_match_24, clean_game_stats, match_fun = str_detect, by = c(Opponent = "school")) %>%
+  filter(!is.na(school))
+
+  ggplot(prelim_game_stats) +
+  geom_boxplot(aes(x = mean_pass, fill = `W/L`))
+
+
 ```
 
 
