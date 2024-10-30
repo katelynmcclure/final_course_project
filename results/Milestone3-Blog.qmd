@@ -6,3 +6,9 @@ format:
     toc-depth: 2
     embed-resources: true
 ---
+
+Write a short blog post (no more than 1000 words) about your results so far. Create a Milestone3-Blog.qmd file in your results folder within project repository on Github and render to generate an HTML file for this post. In this post, you should:
+Motivate the importance of the topic
+Lead the reader through the rationale for the narrowing/focusing of the scope via the main 2-3 broad questions
+Tie results (plots and modeling output) to the broad questions and explain how all results fit together
+End with main takeaways, limitations with regard to the data context and ethical considerations, and future directions
