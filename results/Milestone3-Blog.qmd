@@ -1,0 +1,8 @@
+---
+title: "Milestone 3 Blog Post"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+---

@@ -1,0 +1,81 @@
+---
+title: "Milestone 3"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+---
+
+## Data Codebook
+
+### Match information
+
+**Date:** date of the match
+
+**Opponent:** name of the opposing team (vs = Mac home game, at = Mac away game)
+
+**W/L:** win or loss (W = win, L = loss)
+
+**SP:** # of sets played (3, 4, or 5)
+
+**PTS:** # of points scored by Macalester (over the entire match)
+
+### Offense
+
+**K:** # of kills (immediate point scored, a few scenarios)
+
+**E:** # of attack errors (hit ball out of bounds, blocked by the other team right back to the person who hit the ball, a few other scenarios)
+
+**TA:** # of total attempts (sum of kills, errors, and zero attacks)
+
+**PCT:** hitting percentage ( (total kills - total errors) / total attempts )
+
+### Passing
+
+**AST:** # of assists (when a player passes the ball to someone who kills the ball)
+
+**DIG:** # of digs (player keeps the ball from hitting the floor, usually with their forearms to pass to someone else on their team)
+
+**BHE:** # of ball handling errors (lifted ball, double hit, thrown ball any time other than a serve reception)
+
+### Service
+
+**SA:** # of service ace (serve that is not returned by the other team)
+
+**SE:** # of service error (failed serve)
+
+**RE:** # of receiving error (if the serve hits the floor in the area of a player)
+
+### Blocking
+
+**BS:** # of block solos (single player blocks the ball back onto the opponents side leading to a point)
+
+**BA:** # of block assists (two or three players block the ball back onto the opponents side leading to a point)
+
+**BE:** # of block errors (errors made while attempting to block an opponent's attack)
+
+**TB:** # of total blocks
+
+
+## Steps from Milestone 2
+
+### Question 1: Hitting %, SR Rating, Service Aces, Service Errors 
+- Step 1: Fix the str_detect issue with "Luther" schools -- "Luther", "Bethany Lutheran", and "Martin Luther" 
+- Step 2: Create a model that predicts the outcome of a volleyball game (W/L) based on hitting percentage, SR Rating, # of Service aces and # of service errors? How accurate is this model? (Think back to STAT253 models, like the one that tried to predict whether or not it would rain based off of weather attributes.)
+
+### Question 2: Tracking Seniors over Time
+Looking at data from the Macalester Athletics website (rather than the Google Sheets data), can we track the seniors and how they've played over time? Have their average stats improved over time?
+
+**SENIORS:** **Stepanie Geber** - 4 yr starter, **Adisa Preston** - 4 yr starter, **Gwen Wooten** - Started 1st year and 2nd year, **Nicole Norton** - started 1st, some of 2nd and 3rd and now starting in her 4th year, **Grace Galer** - starting in her senior year, **Torrance Williams** - 4 yr starter- Passing, **Jill MacInnis** - has never started but played in a number of matches in her 4 years
+
+- Step 1: Import the data from the Macalester Athletics website for the past 4 years (2024, 2023, 2022, 2021)
+- Step 2: Filter the data to only include the seniors
+- Step 3: Calculate the average stats for each senior for each year
+- Step 4: Make appropriate visualizations to see any trends
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
