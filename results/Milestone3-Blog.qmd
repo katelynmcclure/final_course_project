@@ -1,5 +1,6 @@
 ---
 title: "Milestone 3 Blog Post"
+author: "Katelyn McClure and Kynan Desouza-Chen"
 format:
   html:
     toc: true
@@ -8,7 +9,154 @@ format:
 ---
 
 Write a short blog post (no more than 1000 words) about your results so far. Create a Milestone3-Blog.qmd file in your results folder within project repository on Github and render to generate an HTML file for this post. In this post, you should:
-Motivate the importance of the topic
-Lead the reader through the rationale for the narrowing/focusing of the scope via the main 2-3 broad questions
-Tie results (plots and modeling output) to the broad questions and explain how all results fit together
-End with main takeaways, limitations with regard to the data context and ethical considerations, and future directions
+
+# Motivate the importance of the topic (166 words)
+
+The Macalester Women's Volleyball team, as with most point-oriented sports teams at Mac, has employees at their matches collecting game statistics. However, much of the time, these game statistics just sit around in a database or are used for a few basic calculations by the coaching staff to evaluate performance. This project aims to use these statistics to create insights into the team's performance and development. This is important for a team because it can help the coaches and players understand their strengths and weaknesses and help them improve their performance by alerting them what aspects of play that could be paid more attention to in practice. 
+
+While sports analytics is a well-established field in professional and D1 sports, it is not as common in the context of small, liberal arts college sports teams, especially women's sports teams. This project aims to bridge that gap by providing a detailed analysis of the Macalester Women's Volleyball that aims to answer data questions from the coaching staff themselves.  
+
+
+# Lead the reader through the rationale for the narrowing/focusing of the scope via the main 2-3 broad questions
+
+## Q1: modeling w/l based on desired game stats (118 words)
+
+We met with Mac Volleyball head coach Mary Johnston and assistant coach Keelin Severtson in October to discuss the direction that they thought would be most useful for them for us to take with our open-ended project. They expressed interest in understanding their team's performance (Win/Loss) based on specific game statistics. Specifically, they were curious about relationships between hitting percentage ((total kills - total errors) / total attempts), service aces (Mac serves that were not returned by the opposing team), and service errors (Mac serves that do not land in bounds). This led us to the first broad question of our project: "Can we predict the outcome of a game based on hitting percentage, service aces, and service errors?"
+
+## Q2: looking at 2025 seniors throughout their duration at Mac
+
+something like "in addition to looking at game stats, we also wanted to look at the development of the class of 2025 seniors throughout their time on Macalester VB" or something along those lines
+
+# Tie results (plots and modeling output) to the broad questions and explain how all results fit together
+
+## Q1: modeling w/l based on desired game stats (303 words)
+
+In order to predict the outcome of a game based on hitting percentage, service aces, and service errors, we first needed to clean and preprocess the data. We decided to use data from the 2021, 2022, and 2023 seasons to train our model. We chose these years because 2025 seniors were freshmen for the 2021 season, so these years encompass their entire time at Macalester. Additionally, data from years before 2021 would represent a completely different group of players, and Mary Johnston became the head coach of the team during the 2021 season. 
+
+Using this publically available data from the Macalester Athletics website, we were able to train a logistic regression model to predict the outcome of a game based on hitting percentage, service aces, and service errors. 
+
+```{r echo = FALSE, message = FALSE}
+library(tidyverse)
+library(rvest)
+
+# 2024
+per_match_24 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2024") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_24 <- per_match_24 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent))
+
+# 2023
+per_match_23 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2023") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_23 <- per_match_23 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent)) %>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+# 2022
+per_match_22 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2022") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_22 <- per_match_22 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent)) %>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+# 2021
+per_match_21 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2021") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_21 <- per_match_21 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent) )%>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+# COMBINED DATA (2021, 2022, 2023)
+game_stats_21_23 <- bind_rows(clean_per_match_21, clean_per_match_22, clean_per_match_23)
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+library(tidymodels)
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23 <- game_stats_21_23 %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ PCT + SA + SE, data = game_stats_21_23)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23)
+```
+
+```{r}
+# 2021-2023 Macalester Women's Volleyball Logistic Model (W/L ~ PCT + SA + SE)
+logistic_model %>% 
+  tidy()
+```
+
+Looking at the in-sample confusion plot gives us an insight as to how accurate the model performs on the training data, the data from 2021-2023. The squares in the upper left and lower right corners of the plot represent cases where the model *correctly* predicted the outcome of the game. The smaller rectangles in the upper right and lower left corners represent cases where the model *incorrectly* predicted the outcome of the game.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+in_sample_classifications <- logistic_model %>%
+  augment(new_data = game_stats_21_23) %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
+  mutate(.pred_class = as.factor(.pred_class)) %>%
+  mutate(.pred_class = droplevels(.pred_class)) %>%
+  mutate(`W/L` = factor(`W/L`, levels = c("L", "W")))
+
+
+in_sample_confusion <- in_sample_classifications %>%
+  conf_mat(truth = `W/L`, estimate = .pred_class)
+```
+
+```{r}
+in_sample_confusion %>% 
+  autoplot()
+```
+
+Our model has an in-sample accuracy of 79.2%, meaning that it correctly predicted the outcome of a game used to train it 79.2% of the time.
+
+```{r}
+summary(in_sample_confusion, event_level = "second") %>%
+  filter(.metric == "accuracy")
+```
+
+When applying the model to the 2024 season (as of 10/30/2024), the model is 18 / (18 + 9) = 67% accurate in predicting the outcome of a game based on hitting percentage, service aces, and service errors. This model could probably be improved by considering more variables, but then we run the risk of overfitting our model to the training data, which would make it appear more accurate while actually being less accurate on new data.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# Testing on new data (2024 season)
+predictions24 <- logistic_model %>% 
+  augment(new_data = clean_per_match_24) %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) 
+
+predictions24 <- predictions24 %>%
+  mutate(Match = if_else(.pred_class == `W/L`, TRUE, FALSE))
+```
+
+```{r}
+predictions24 %>%
+  group_by(Match) %>%
+  summarize(count = n())
+```
+
+
+## Q2: looking at 2025 seniors throughout their duration at Mac
+
+# End with main takeaways, limitations with regard to the data context and ethical considerations, and future directions
+
+## Kynan can u write this
+## also maybe we could rearrange this and have all the stuff about q1 before all the stuff about q2, lemme know what u think and it'll be an easy move (we should probably delete the headers we have now and make them more blog-posty anyways)

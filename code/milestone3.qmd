@@ -102,7 +102,7 @@ prelim_game_stats %>%
 - Step 2: Create a model that predicts the outcome of a volleyball game (W/L) based on hitting percentage, SR Rating, # of Service aces and # of service errors? How accurate is this model? (Think back to STAT253 models, like the one that tried to predict whether or not it would rain based off of weather attributes.)
 
 ```{r}
-# model using data for the last 4 years (years that seniors have been on the team) to give more data to train model
+# model using data for the last 3 years (years that seniors have been on the team) to give more data to train model for the 2024 season
 per_match_23 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2023") %>%
   html_table() %>%
   .[[6]]
@@ -156,11 +156,11 @@ logistic_model %>%
   tidy()
 
 # Modify .pred_class to show 'W' for predicted wins, not sure why I had to mutate twice and why the first one didn't work how I wanted it to but WE PROCEED NONETHELESS!!!
-predictions24 <- predictions24 %>%
-  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
-  mutate(.pred_class = if_else(.pred_class == "1", "L", "W"))
-
-predictions24
+# predictions24 <- predictions24 %>%
+#   mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+#   mutate(.pred_class = if_else(.pred_class == "1", "L", "W"))
+# 
+# predictions24
 ```
 
 ```{r in-sample confusion matrix}
