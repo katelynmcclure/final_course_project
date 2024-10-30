@@ -155,10 +155,6 @@ logistic_model <- logistic_workflow %>%
 logistic_model %>% 
   tidy()
 
-# Testing on new data (2024 season)
-predictions24 <- logistic_model %>% 
-  augment(new_data = clean_per_match_24)
-
 # Modify .pred_class to show 'W' for predicted wins, not sure why I had to mutate twice and why the first one didn't work how I wanted it to but WE PROCEED NONETHELESS!!!
 predictions24 <- predictions24 %>%
   mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
@@ -205,6 +201,23 @@ in_sample_confusion
 # OVERALL IN-SAMPLE ACCURACY -- 79%
 (34 + 27) / (34 + 9 + 7 + 27)
 ```
+
+```{r}
+# Testing on new data (2024 season)
+predictions24 <- logistic_model %>% 
+  augment(new_data = clean_per_match_24) %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) 
+
+predictions24 <- predictions24 %>%
+  mutate(Match = if_else(.pred_class == `W/L`, TRUE, FALSE))
+
+predictions24 %>%
+  group_by(Match) %>%
+  summarize(count = n())
+# MODEL IS 18/27 = 67% ACCURATE ON 2024 GAMES (AS OF YET)
+```
+
 
 
 ### Question 2: Tracking Seniors over Time
