@@ -217,6 +217,54 @@ Looking at data from the Macalester Athletics website (rather than the Google Sh
 - Step 3: Calculate the average stats for each senior for each year
 - Step 4: Make appropriate visualizations to see any trends
 
+```{r packages}
+library(tidyverse)
+library(rvest)
+library(janitor)
+```
+
+```{r retrieve-data}
+year_links <- str_c("https://athletics.macalester.edu/sports/womens-volleyball/stats/", c(2021, 2022, 2023, 2024))
+
+seniors <- c("Wooten, Gwen", "Preston, Adisa", "Geber, Stephanie", "Norton, Nicole", "Galer, Grace", "Williams, Torrance", "MacInnis, Jill")
+
+year_to_df <- function(link){
+  all_tables <- read_html(link) %>%
+    html_table()
+  
+  tables <- c(all_tables[2], all_tables[3])
+  cleaner_tables <- map(tables, ~ as.data.frame(.x) %>% row_to_names(1) %>% select(-c(`#`, `Bio Link`)))
+  
+  return_tables <- cleaner_tables[[1]] %>%
+    left_join(cleaner_tables[[2]], by = join_by("Player", "SP")) %>%
+    mutate(
+      year = str_sub(link, nchar(link) - 3),
+      Player = str_extract(Player, ".*")) %>%
+    filter(Player %in% seniors)
+    
+  return(return_tables)
+}
+
+full_senior_stats <- map(year_links, year_to_df) %>%
+  list_rbind()
+```
+
+```{r cleaning}
+clean_senior_stats <- full_senior_stats %>%
+  mutate(across(!Player, as.numeric))
+```
+
+```{r viz}
+clean_senior_stats %>%
+  ggplot(aes(x = year, y = SP, color = Player)) +
+  geom_point()
+```
+
+
+
+
+
+
 ## Session Info
 
 ```{r}
