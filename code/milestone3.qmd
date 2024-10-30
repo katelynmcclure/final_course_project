@@ -62,7 +62,150 @@ format:
 
 ### Question 1: Hitting %, SR Rating, Service Aces, Service Errors 
 - Step 1: Fix the str_detect issue with "Luther" schools -- "Luther", "Bethany Lutheran", and "Martin Luther" 
+
+```{r}
+library(tidyverse)
+library(rvest)
+
+game_stats <- read_csv("../data/Stat 212 Volleyball Stats 2024 - Game Stats.csv")
+
+per_match_24 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2024") %>%
+  html_table() %>%
+  .[[6]]
+```
+
+```{r clean-data}
+library(fuzzyjoin)
+
+clean_per_match_24 <- per_match_24 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent))
+
+clean_game_stats <- game_stats %>%
+  select(c(Player...1, Pass, Game...3)) %>%
+  group_by(Game...3) %>%
+  summarize(mean_pass = mean(Pass)) %>%
+  mutate(school = c("Augustana", "Bethany Lutheran", "Bethel", "Carthage", "Concordia", "Cornell", "Dominican", "Grinnell", "Lewis & Clark", "Luther ", "Martin Luther", "Morris", "Monmouth", "Neb. Wesleyan", "Northland", "St. Norbert", "Superior"))
+
+# Some manual editing required, but this seems to be a potentially usable function
+prelim_game_stats <- fuzzy_left_join(clean_per_match_24, clean_game_stats, match_fun = str_detect, by = c(Opponent = "school")) %>%
+  filter(!is.na(school))
+
+prelim_game_stats %>%
+  group_by(school) %>%
+  summarize(n())
+
+# fixed str_detect Luther problem by adding a space to the end of "Luther" in the clean_per_match_24 data, definitely not the best way to do it but hey, it works
+```
+
+
 - Step 2: Create a model that predicts the outcome of a volleyball game (W/L) based on hitting percentage, SR Rating, # of Service aces and # of service errors? How accurate is this model? (Think back to STAT253 models, like the one that tried to predict whether or not it would rain based off of weather attributes.)
+
+```{r}
+# model using data for the last 4 years (years that seniors have been on the team) to give more data to train model
+per_match_23 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2023") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_23 <- per_match_23 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent)) %>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+per_match_22 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2022") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_22 <- per_match_22 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent)) %>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+per_match_21 <- read_html("https://athletics.macalester.edu/sports/womens-volleyball/stats/2021") %>%
+  html_table() %>%
+  .[[6]]
+clean_per_match_21 <- per_match_21 %>%
+  mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>%
+  mutate(Opponent = if_else(Opponent == "Luther", "Luther ", Opponent) )%>%
+  mutate(`W/L` = as.factor(`W/L`))
+
+game_stats_21_23 <- bind_rows(clean_per_match_21, clean_per_match_22, clean_per_match_23)
+```
+
+```{r}
+library(tidymodels)
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23 <- game_stats_21_23 %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ PCT + SA + SE, data = game_stats_21_23)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23)
+
+# OUR MODEL!!
+logistic_model %>% 
+  tidy()
+
+# Testing on new data (2024 season)
+predictions24 <- logistic_model %>% 
+  augment(new_data = clean_per_match_24)
+
+# Modify .pred_class to show 'W' for predicted wins, not sure why I had to mutate twice and why the first one didn't work how I wanted it to but WE PROCEED NONETHELESS!!!
+predictions24 <- predictions24 %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W"))
+
+predictions24
+```
+
+```{r in-sample confusion matrix}
+in_sample_classifications <- logistic_model %>%
+  augment(new_data = game_stats_21_23) %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
+  mutate(.pred_class = as.factor(.pred_class)) %>%
+  mutate(.pred_class = droplevels(.pred_class)) %>%
+  mutate(`W/L` = factor(`W/L`, levels = c("L", "W")))
+
+
+in_sample_confusion <- in_sample_classifications %>%
+  conf_mat(truth = `W/L`, estimate = .pred_class)
+
+in_sample_confusion %>% 
+  autoplot()
+
+# # Check it out
+# in_sample_classifications %>%
+#   head()
+# 
+# in_sample_confusion <- in_sample_classifications %>% 
+#   conf_mat(truth = `W/L`, estimate = .pred_class)
+# 
+# in_sample_confusion %>% 
+#   autoplot()
+
+mosaic_plot <- in_sample_confusion %>% 
+  autoplot() +
+  aes(fill = rep(colnames(in_sample_confusion$table), ncol(in_sample_confusion$table))) + 
+  theme(legend.position = "none")
+
+mosaic_plot
+
+in_sample_confusion
+
+# OVERALL IN-SAMPLE ACCURACY -- 79%
+(34 + 27) / (34 + 9 + 7 + 27)
+```
+
 
 ### Question 2: Tracking Seniors over Time
 Looking at data from the Macalester Athletics website (rather than the Google Sheets data), can we track the seniors and how they've played over time? Have their average stats improved over time?
