@@ -29,7 +29,7 @@ something like "in addition to looking at game stats, we also wanted to look at 
 
 # Tie results (plots and modeling output) to the broad questions and explain how all results fit together
 
-## Q1: modeling w/l based on desired game stats (303 words)
+## Q1: modeling w/l based on desired game stats (391 words)
 
 In order to predict the outcome of a game based on hitting percentage, service aces, and service errors, we first needed to clean and preprocess the data. We decided to use data from the 2021, 2022, and 2023 seasons to train our model. We chose these years because 2025 seniors were freshmen for the 2021 season, so these years encompass their entire time at Macalester. Additionally, data from years before 2021 would represent a completely different group of players, and Mary Johnston became the head coach of the team during the 2021 season. 
 
@@ -106,7 +106,9 @@ logistic_model %>%
   tidy()
 ```
 
-Looking at the in-sample confusion plot gives us an insight as to how accurate the model performs on the training data, the data from 2021-2023. The squares in the upper left and lower right corners of the plot represent cases where the model *correctly* predicted the outcome of the game. The smaller rectangles in the upper right and lower left corners represent cases where the model *incorrectly* predicted the outcome of the game.
+Our model returns the log odds coefficients for our variables. This means that for each unit increase (0.01) in hitting percentage leads to an $e^{0.196} = 1.22$ times increase in the odds of winning a game, which translates to a 55% increase in the probability of winning the game. Similarly, for each additional service ace, the odds of winning the game increase by a factor of $e^{0.335} = 1.4$, or a 58% increase in the probability of winning the game. The p-value for service errors lands it far outside of the threshold of significance, so we can conclude that service errors do not have a significant effect on the outcome of a game on our testing data.
+
+Looking at the in-sample confusion plot gives us an insight as to how accurate the model performs on the training data, the data from 2021-2023. The squares in the upper left and lower right corners of the plot represent cases where the model *correctly* predicted the outcome of the game. 
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 in_sample_classifications <- logistic_model %>%
@@ -127,7 +129,7 @@ in_sample_confusion %>%
   autoplot()
 ```
 
-Our model has an in-sample accuracy of 79.2%, meaning that it correctly predicted the outcome of a game used to train it 79.2% of the time.
+Our model has an in-sample accuracy of 79.2%, meaning that it correctly predicted the outcome of a game used to train it (2021-2023) 79.2% of the time.
 
 ```{r}
 summary(in_sample_confusion, event_level = "second") %>%
