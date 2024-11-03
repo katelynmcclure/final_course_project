@@ -264,13 +264,21 @@ full_senior_stats <- map(year_links, year_to_df) %>%
 
 ```{r cleaning}
 clean_senior_stats <- full_senior_stats %>%
-  mutate(across(!Player, as.numeric))
+  mutate(
+    across(!Player, as.numeric),
+    starter = (SP > 60)) #Not completely accurate, might need to manually fix later
 ```
 
 ```{r viz}
-clean_senior_stats %>%
-  ggplot(aes(x = year, y = SP, color = Player)) +
-  geom_point()
+per_year_lines <- function(yvar){
+  clean_senior_stats %>%
+    filter(starter) %>%
+    ggplot(aes(x = year, y = {{yvar}}, color = Player)) +
+    geom_line()
+}
+
+per_year_lines(PCT)
+per_year_lines(`SA/S`)
 ```
 
 
