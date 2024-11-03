@@ -23,9 +23,6 @@ While sports analytics is a well-established field in professional and D1 sports
 
 We met with Mac Volleyball head coach Mary Johnston and assistant coach Keelin Severtson in October to discuss the direction that they thought would be most useful for them for us to take with our open-ended project. They expressed interest in understanding their team's performance (Win/Loss) based on specific game statistics. Specifically, they were curious about relationships between hitting percentage ((total kills - total errors) / total attempts), service aces (Mac serves that were not returned by the opposing team), and service errors (Mac serves that did not land in bounds). This led us to the first broad question of our project: "Can we predict the outcome of a game based on hitting percentage, service aces, and service errors?"
 
-## Q2: looking at 2025 seniors throughout their duration at Mac
-
-something like "in addition to looking at game stats, we also wanted to look at the development of the class of 2025 seniors throughout their time on Macalester VB" or something along those lines
 
 # Tie results (plots and modeling output) to the broad questions and explain how all results fit together
 
@@ -155,8 +152,48 @@ predictions24 %>%
   summarize(count = n())
 ```
 
+## Q2: looking at 2025 seniors throughout their duration at Mac (271 words)
+
+The coaches also told us they would be interested in knowing how current seniors have developed as players during their time at Macalester. They had not been keeping detailed data about each individual player for years before 2024, so the data we will be working with to analyze trends for seniors is game data from the Macalester Athletics website. Knowing how seniors change over the course of their time in college could help the coaches understand what they are doing well, while also revealing some areas they could focus on more to try to get the most development possible out of their players. 
+```{r retrieve-data}
+library(janitor)
+
+year_links <- str_c("https://athletics.macalester.edu/sports/womens-volleyball/stats/", c(2021, 2022, 2023, 2024))
+
+seniors <- c("Wooten, Gwen", "Preston, Adisa", "Geber, Stephanie", "Norton, Nicole", "Galer, Grace", "Williams, Torrance", "MacInnis, Jill")
+
+year_to_df <- function(link){
+  all_tables <- read_html(link) %>%
+    html_table()
+  
+  tables <- c(all_tables[2], all_tables[3])
+  cleaner_tables <- map(tables, ~ as.data.frame(.x) %>% row_to_names(1) %>% select(-c(`#`, `Bio Link`)))
+  
+  return_tables <- cleaner_tables[[1]] %>%
+    left_join(cleaner_tables[[2]], by = join_by("Player", "SP")) %>%
+    mutate(
+      year = str_sub(link, nchar(link) - 3),
+      Player = str_extract(Player, ".*")) %>%
+    filter(Player %in% seniors)
+    
+  return(return_tables)
+}
+
+full_senior_stats <- map(year_links, year_to_df) %>%
+  list_rbind()
+```
+
+There are some serious limitations on the analysis that we can do that need to be discussed before the results are explained. Firstly, only half of the seniors have started all 4 years of their college careers. In-game statistics are much easier to analyze for 4 year starters since the sample sizes are relatively consistent, meaning that their statistical changes should be meaningful. However, there are some seniors who have started very little or only started certain years. There is even one who has been described as starting for parts of certain years. This makes it much more complicated to analyze their growth over a 4 year period since there are many factors that could contribute to a player not starting, including performance, injury, or coach decisions. For these reasons, we will focus on the 3 seniors that have started for all 4 years in this analysis, and then extend our focus over the next few weeks.
+```{r cleaning}
+starters = c("Geber, Stephanie", "Preston, Adisa", "Williams, Torrance")
+
+clean_senior_stats <- full_senior_stats %>%
+  filter(Player %in% starters) %>%
+  mutate(across(!Player, as.numeric))
+```
 
 ## Q2: looking at 2025 seniors throughout their duration at Mac
+
 
 # End with main takeaways, limitations with regard to the data context and ethical considerations, and future directions
 

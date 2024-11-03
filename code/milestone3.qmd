@@ -263,22 +263,23 @@ full_senior_stats <- map(year_links, year_to_df) %>%
 ```
 
 ```{r cleaning}
+starters = c("Geber, Stephanie", "Preston, Adisa", "Williams, Torrance")
+
 clean_senior_stats <- full_senior_stats %>%
-  mutate(
-    across(!Player, as.numeric),
-    starter = (SP > 60)) #Not completely accurate, might need to manually fix later
+  filter(Player %in% starters) %>%
+  mutate(across(!Player, as.numeric))
 ```
 
 ```{r viz}
 per_year_lines <- function(yvar){
   clean_senior_stats %>%
-    filter(starter) %>%
     ggplot(aes(x = year, y = {{yvar}}, color = Player)) +
-    geom_line()
+    geom_line(show.legend = FALSE) +
+    theme_bw()
 }
 
 per_year_lines(PCT)
-per_year_lines(`SA/S`)
+per_year_lines(`Rec%`)
 ```
 
 
