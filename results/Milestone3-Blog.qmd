@@ -155,12 +155,16 @@ predictions24 %>%
 ## Q2: looking at 2025 seniors throughout their duration at Mac (271 words)
 
 The coaches also told us they would be interested in knowing how current seniors have developed as players during their time at Macalester. They had not been keeping detailed data about each individual player for years before 2024, so the data we will be working with to analyze trends for seniors is game data from the Macalester Athletics website. Knowing how seniors change over the course of their time in college could help the coaches understand what they are doing well, while also revealing some areas they could focus on more to try to get the most development possible out of their players. 
+
+```{r anonimity, echo=FALSE}
+seniors <- c("Wooten, Gwen", "Preston, Adisa", "Geber, Stephanie", "Norton, Nicole", "Galer, Grace", "Williams, Torrance", "MacInnis, Jill")
+```
+
+
 ```{r retrieve-data}
 library(janitor)
 
 year_links <- str_c("https://athletics.macalester.edu/sports/womens-volleyball/stats/", c(2021, 2022, 2023, 2024))
-
-seniors <- c("Wooten, Gwen", "Preston, Adisa", "Geber, Stephanie", "Norton, Nicole", "Galer, Grace", "Williams, Torrance", "MacInnis, Jill")
 
 year_to_df <- function(link){
   all_tables <- read_html(link) %>%
@@ -184,18 +188,43 @@ full_senior_stats <- map(year_links, year_to_df) %>%
 ```
 
 There are some serious limitations on the analysis that we can do that need to be discussed before the results are explained. Firstly, only half of the seniors have started all 4 years of their college careers. In-game statistics are much easier to analyze for 4 year starters since the sample sizes are relatively consistent, meaning that their statistical changes should be meaningful. However, there are some seniors who have started very little or only started certain years. There is even one who has been described as starting for parts of certain years. This makes it much more complicated to analyze their growth over a 4 year period since there are many factors that could contribute to a player not starting, including performance, injury, or coach decisions. For these reasons, we will focus on the 3 seniors that have started for all 4 years in this analysis, and then extend our focus over the next few weeks.
-```{r cleaning}
-starters = c("Geber, Stephanie", "Preston, Adisa", "Williams, Torrance")
 
+```{r anonimity-2, echo=FALSE}
+starters = c("Geber, Stephanie", "Preston, Adisa", "Williams, Torrance")
+```
+
+
+```{r cleaning}
 clean_senior_stats <- full_senior_stats %>%
   filter(Player %in% starters) %>%
   mutate(across(!Player, as.numeric))
 ```
 
+
+
 ## Q2: looking at 2025 seniors throughout their duration at Mac
 
+```{r viz}
+per_year_lines <- function(yvar){
+  clean_senior_stats %>%
+    ggplot(aes(x = year, y = {{yvar}}, color = Player)) +
+    geom_line(show.legend = FALSE) +
+    theme_bw()
+}
+```
 
-# End with main takeaways, limitations with regard to the data context and ethical considerations, and future directions
+Until we have the ability to examine a larger sample of players, the primary form of analysis we can do is visualization. Let’s look at the hitting percentage over the years for the 3 starters first, since this is a measure of the offensive efficiency of a player.
+```{r}
+per_year_lines(PCT)
+```
 
-## Kynan can u write this
-## also maybe we could rearrange this and have all the stuff about q1 before all the stuff about q2, lemme know what u think and it'll be an easy move (we should probably delete the headers we have now and make them more blog-posty anyways)
+What caught my attention is that 2 of the 3 players didn’t have any major improvements in their hitting percentage, though it is important to note that these players already had high offensive production, so any expected improvement would be marginal. The third player though, started out with a negative hitting percentage but steadily improved to have a very high percentage by the end of their time in college. 
+
+The other statistic we will focus on is reception percentage, which is essentially a measure of how good a player is at returning serves. It is important to note that not all players return serves because certain positions aren’t in good spots to return.
+```{r}
+per_year_lines(`Rec%`)
+```
+
+We can disregard the yellow line on this graph since this is one of the players that doesn’t return a large enough amount of serves to do a meaningful analysis on it. But we can see the massive jump in reception percentage in the other 2 players. Since their trends in reception percentage are so similar, it calls into question whether these 2 stats are correlated, so further analysis is needed to determine whether there is a relationship.
+
+We will leave off with future plans. This week was mostly about getting all the data into a somewhat workable format. We did some cursory analysis, but there is plenty more to analysis to do, and plenty of player we haven't even explored at all. Also, our model is calibrated to things we were told were important, but we could explore what else could make the win/loss model better. The main ethical consideration is with the anonymity of the players we are analyzing. We will obviously share results of our stury with the coaches, but we may consider not publishing results online.
