@@ -159,6 +159,7 @@ predictions24 %>%
 library(tidyverse)
 library(rgl)
 
+# COMBINING IN-SAMPLE AND 2024 PREDICTIONS, ASSIGNING COLORS TO THE 4 CATEGORIES OF POINTS
 predictions <- predictions24 %>%
   rbind(in_sample_classifications) %>%
   filter(SA < 20) %>% # excludes end-of-season totals (that I forgot to remove earlier)
@@ -181,12 +182,19 @@ points3d(x = 0.3, y = 0, z = 4, col = "darkgreen", size = 10)
 points3d(x = 0.3, y = 0, z = 3, col = "firebrick2", size = 10) 
 points3d(x = 0.3, y = 0, z = 2, col = "#5e7454", size = 10) 
 points3d(x = 0.3, y = 0, z = 1, col = "#ba6456", size = 10) 
-
 text3d(x = 0.3, y = 0, z = 4, texts = "win, win predicted", cex = 1, adj = -.1)  
 text3d(x = 0.3, y = 0, z = 3, texts = "loss, loss predicted", cex = 1, adj = -.1)  
 text3d(x = 0.3, y = 0, z = 2, texts = "win, loss predicted", cex = 1, adj = -.1)
 text3d(x = 0.3, y = 0, z = 1, texts = "loss, win predicted", cex = 1, adj = -.1)
 ```
 
+> The plot doesn't render in html but trust me if you're reading this, it's awesome
 
+## FEEDBACK FROM IN CLASS PRESENTATION (11/12)
 
+- change colors -- don't make red/green bc of colorblindness, make more obvious the difference between the dark and more grayed out colors
+- improve legend -- works well when you're looking at it head on but not once you start rotating the plot
+- for the model, instead of SA and SE for example, change them into a ratio of SA/total serves and SE/total serves to control a little bit for longer games (5 sets vs 3 sets) (have all the axes be %s)
+- make a shiny app? it could be cool to be able to add/remove years of data (as it is right now, it's all of the games combined) or be able to filter wins/losses
+- change up the variables in the model -- maybe run LOESS to pick out the most important variables? if that's legal. focus on 3 or 4 maybe -- especially if the purpose of this is to help the coaches understand what they should focus on in practice
+- **KEEP VARIABLES THE WAY THEY ARE FOR THIS MODEL/VIZ** and try making another! keep this one because it's what the coaches were curious in, make another one with different variables to see if it's more accurate/if there's things that are more important to focus on in practice (maybe) (again the coaches will always know more than the data) (but it could be interesting to at least consider) 
