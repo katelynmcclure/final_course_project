@@ -198,3 +198,343 @@ text3d(x = 0.3, y = 0, z = 1, texts = "loss, win predicted", cex = 1, adj = -.1)
 - make a shiny app? it could be cool to be able to add/remove years of data (as it is right now, it's all of the games combined) or be able to filter wins/losses
 - change up the variables in the model -- maybe run LOESS to pick out the most important variables? if that's legal. focus on 3 or 4 maybe -- especially if the purpose of this is to help the coaches understand what they should focus on in practice
 - **KEEP VARIABLES THE WAY THEY ARE FOR THIS MODEL/VIZ** and try making another! keep this one because it's what the coaches were curious in, make another one with different variables to see if it's more accurate/if there's things that are more important to focus on in practice (maybe) (again the coaches will always know more than the data) (but it could be interesting to at least consider) 
+
+## BACKWARDS STEPWISE TRYING
+### YES BRIANNA I KNOW IT'S NOT THE BEST
+
+```{r}
+predictionsStepwise <- predictions %>%
+  mutate(SASet = SA / SP, SESet = SE / SP, KSet = K / SP, ESet = E / SP, TASet = TA / SP, ASTSet = AST / SP, RESet = RE / SP, DIGSet = DIG/SP, BSSet = BS / SP, BASet = BA / SP, BESet = BE / SP, TBSet = TB / SP, BHESet = BHE / SP) %>% # SA, SE, K, and E are all per set (not necessarily true but an average (ex one set could've had all the errors but it's divided among all of the sets))
+  select(-c(SA, SE, K, E, TA, AST, RE, DIG, BS, BA, BE, TB, BHE, .pred_class, Match, .pred_L, .pred_, Date, Opponent, color)) 
+```
+
+
+SP + PCT + PTS + SASet + SESet + KSet + ESet + TASet + ASTSet + RESet + DIGSet + BSSet + BASet + BESet + TBSet + BHESet
+
+```{r}
+game_stats_21_23_Stepwise <- game_stats_21_23 %>%
+  mutate(SASet = SA / SP, SESet = SE / SP, KSet = K / SP, ESet = E / SP, TASet = TA / SP, ASTSet = AST / SP, RESet = RE / SP, DIGSet = DIG/SP, BSSet = BS / SP, BASet = BA / SP, BESet = BE / SP, TBSet = TB / SP, BHESet = BHE / SP) # SA, SE, K, and E are all per set (not necessarily true but an average (ex one set could've had all the errors but it's divided among all of the sets))
+```
+
+
+```{r}
+library(tidymodels)
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + SESet + KSet + ESet + TASet + ASTSet + RESet + DIGSet + BSSet + BASet + BESet + TBSet + BHESet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + SESet + KSet + TASet + ASTSet + RESet + DIGSet + BSSet + BASet + BESet + TBSet + BHESet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + SESet + KSet + ASTSet + RESet + DIGSet + BSSet + BASet + BESet + TBSet + BHESet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + SESet + KSet + ASTSet + RESet + DIGSet + BSSet + BASet + BESet + TBSet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + SESet + KSet + ASTSet + RESet + BSSet + BASet + BESet + TBSet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + KSet + ASTSet + RESet + BSSet + BASet + BESet + TBSet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + PCT + SASet + ASTSet + RESet + BSSet + BASet + BESet + TBSet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SP + SASet + ASTSet + RESet + BSSet + BASet + BESet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SASet + ASTSet + RESet + BSSet + BASet + BESet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SASet + ASTSet + RESet + BSSet + BASet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SASet + ASTSet + BSSet + BASet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() %>%
+  arrange(desc(p.value))
+```
+
+```{r}
+# logistic regression model using past 3 years of volleyball data to predict 2024 data
+game_stats_21_23_Stepwise <- game_stats_21_23_Stepwise %>%
+  mutate(`W/L` = as.factor(`W/L`)) %>% 
+  mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+
+logistic_spec <- logistic_reg() %>%
+  set_mode("classification") %>% 
+  set_engine("glm")
+
+# NOT using SR Rating, we only have that data for 2024
+variable_recipe <- recipe(`W/L` ~ SASet + ASTSet + BSSet, data = game_stats_21_23_Stepwise)
+
+logistic_workflow <- workflow() %>% 
+  add_recipe(variable_recipe) %>%
+  add_model(logistic_spec)
+
+logistic_model <- logistic_workflow %>% 
+  fit(data = game_stats_21_23_Stepwise)
+
+logistic_model %>% 
+  tidy() 
+```
+
+```{r message = FALSE, warning = FALSE}
+in_sample_classifications <- logistic_model %>%
+  augment(new_data = game_stats_21_23_Stepwise) %>%
+  mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+  mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
+  mutate(.pred_class = as.factor(.pred_class)) %>%
+  mutate(.pred_class = droplevels(.pred_class)) %>%
+  mutate(`W/L` = factor(`W/L`, levels = c("L", "W")))
+
+
+in_sample_confusion <- in_sample_classifications %>%
+  conf_mat(truth = `W/L`, estimate = .pred_class)
+```
+
+```{r}
+in_sample_confusion %>% 
+  autoplot()
+
+summary(in_sample_confusion, event_level = "second") %>%
+  filter(.metric == "accuracy")
+```
