@@ -1,0 +1,7 @@
+Key
+Clarify what stats are
+Make points easier to see (transparent?)
+Facet by position
+Note where small sample may affect visual/don't include tiny samples.
+Per-game instead of seasonal averages
+In-conference vs. out of conference
