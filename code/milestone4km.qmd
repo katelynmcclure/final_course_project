@@ -538,3 +538,60 @@ in_sample_confusion %>%
 summary(in_sample_confusion, event_level = "second") %>%
   filter(.metric == "accuracy")
 ```
+
+## Function
+
+```{r TRYING TO WRITE A FUNCTION!!}
+# Access data from Mac Athletics website
+vballdata <- function(year) {
+  year <- as.character(year)
+  url <- paste0("https://athletics.macalester.edu/sports/womens-volleyball/stats/", year)
+  table <- read_html(url) %>%
+    html_table() %>%
+    .[[6]] %>%
+    mutate(Opponent = str_extract(Opponent, "[A-Z].*")) %>% # remove "vs" and "at" from opponent name
+    mutate(`W/L` = as.factor(`W/L`)) %>%
+    filter(Date != "") %>%
+    mutate(across(c(SA, SE, K, E, TA, AST, RE, DIG, BS, BA, BE, TB, BHE), ~ .x / SP)) # calculate per set stats (rather than raw totals)
+  return(table)
+}
+
+vball2023 <- vballdata(2023) # example call
+
+combineyears <- function(years) {
+  data <- map_dfr(years, vballdata)
+  return(data)
+}
+
+multyears <- combineyears(c(2021, 2022, 2023))
+```
+
+```{r}
+# function for logistic regression model
+vballmodel <- function(data) {
+  data <- data %>%
+    mutate(`W/L` = as.factor(`W/L`)) %>% 
+    mutate(`W/L` = relevel(`W/L`, ref = "L")) # reference is the 0
+  
+  logistic_spec <- logistic_reg() %>%
+    set_mode("classification") %>% 
+    set_engine("glm")
+  
+  # NOT using SR Rating, we only have that data for 2024
+  variable_recipe <- recipe(`W/L` ~ PCT + SA + SE, data = data)
+  
+  logistic_workflow <- workflow() %>% 
+    add_recipe(variable_recipe) %>%
+    add_model(logistic_spec)
+  
+  logistic_model <- logistic_workflow %>% 
+    fit(data = data)
+  tidy <- logistic_model %>% 
+    tidy()
+  
+  return(tidy)
+}
+
+vballmodel(multyears)
+```
+
