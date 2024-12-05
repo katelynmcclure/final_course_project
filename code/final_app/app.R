@@ -61,18 +61,18 @@ interpretmodel <- function(tidy_model) {
     filter(term != "(Intercept)") %>%
     mutate(
       odds_change = exp(estimate),
-      
+      pval = ifelse(p.value < 0.05, "SIGNIFICANT", "NOT SIGNIFICANT"),
       interpretation = ifelse(
         estimate > 0,
         paste0(
           "When controlling all other variables, for each one-unit increase in ", term,
           ", the probability of winning increases by approximately ",
-          round((odds_change / (odds_change + 1)) * 100, 2), "%. ", term, " has a p-value of ", round(p.value, 6), "."
+          round((odds_change / (odds_change + 1)) * 100, 2), "%. ", term, " has a p-value of ", round(p.value, 6), ", which is ", pval, "."
         ),
         paste0(
           "When controlling all other variables, for each one-unit increase in ", term,
           ", the probability of winning decreases by approximately ",
-          abs(round((odds_change / (odds_change + 1)) * 100, 2)), "%. ", term, " has a p-value of ", round(p.value, 6), "."
+          abs(round((odds_change / (odds_change + 1)) * 100, 2)), "%. ", term, " has a p-value of ", round(p.value, 6), ", which is ", pval, "."
         )
       )
     )

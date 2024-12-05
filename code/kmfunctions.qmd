@@ -176,46 +176,4 @@ newmodelaccuracy <- function(predictions) {
     summarize(
       total_true = sum(count[Match == TRUE]),
       total = sum(count)
-    ) %>%
-    mutate(accuracy = total_true / total) 
-  
-  return(accuracy$accuracy) 
-}
-
-
-newmodelaccuracy(predictnewdata(model, vballdata(2024))) # example call
-```
-
-```{r}
-# function to predict win/loss on user input
-predictWL <- function(tidymodel, a, b, c){
-  intercept <- as.numeric(tidymodel[1,2])
-  acoeff <- as.numeric(tidymodel[2,2]) 
-  bcoeff <- as.numeric(tidymodel[3,2])
-  ccoeff <- as.numeric(tidymodel[4,2])
-  value <- intercept + a * acoeff + b * bcoeff + c * ccoeff
-  prob <- exp(value) / (1 + exp(value))
-  winloss <- ifelse(prob > 0.5, "Win", "Loss")
-  return(winloss)
-}
-
-predictWL(tidymodel, 30.1, 1.3333333, 2.3333333) # example call
-```
-
-```{r}
-meanvalues <- function(df){
-  means <- df %>%
-    summarize(across(where(is.numeric), mean))
-  return(means)
-}
-meanvalues(multyears) # example call
-
-rangevalues <- function(df){
-  ranges <- df %>%
-    mutate()
-  return(ranges)
-}
-
-```
-
-
+    ) 
