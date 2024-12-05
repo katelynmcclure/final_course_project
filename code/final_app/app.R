@@ -21,7 +21,7 @@ team_vballdata <- function(year) {
   return(table)
 }
 
-team_training <- map(c(2021, 2022, 2023), team_vballdata) %>%
+team_training <- map(c(2021, 2022, 2023, 2024), team_vballdata) %>% # 2024 in the model because not predicting 2024 outcomes anymore, predicting theoretical games
   list_rbind()
 
 team_2024 <- team_vballdata(2024)
@@ -99,6 +99,32 @@ insampleconf <- function(model, df) {
   return(confmat) # returns in-sample confusion matrix
 }
 
+predictWL <- function(tidymodel, inputs) {
+  # Extract the intercept and coefficients
+  intercept <- as.numeric(tidymodel[tidymodel$term == "(Intercept)", "estimate"])
+  coefficients <- tidymodel %>%
+    filter(term != "(Intercept)") %>%
+    select(term, estimate) %>%
+    mutate(estimate = as.numeric(estimate))
+  
+  # Ensure inputs are named and match the coefficients
+  inputs <- as.list(inputs)
+  stopifnot(all(coefficients$term %in% names(inputs))) # Verify matching inputs
+  
+  # Calculate the linear predictor
+  linear_predictor <- intercept + sum(unlist(inputs) * coefficients$estimate)
+  
+  # Convert to probability
+  prob <- exp(linear_predictor) / (1 + exp(linear_predictor))
+  
+  # Classify as "Win" or "Loss"
+  winloss <- ifelse(prob > 0.5, "Win", "Loss")
+  
+  # Final statement
+  statement <- paste0("The predicted outcome is a ", winloss, " with a ", round(prob * 100, 2), "% probability of winning the match.")
+  return(statement)
+}
+
 
 #### Number Below
 
@@ -138,9 +164,10 @@ newmodelaccuracy <- function(predictions) {
 ## App
 
 ui <- fluidPage(
-
-  navbarPage("Macalester Women's Volleyball Statistical Analysis",
-    tabPanel("Model", 
+  navbarPage(
+    "Macalester Women's Volleyball Statistical Analysis",
+    tabPanel(
+      "Model", 
       sidebarLayout(
         sidebarPanel(
           checkboxGroupInput(
@@ -148,12 +175,14 @@ ui <- fluidPage(
             "Choose stats to include in the model",
             team_training %>% select(where(is.numeric)) %>% names(),
             selected = c("PCT", "SA", "SE")
-          )
+          ),
+          uiOutput("dynamicInputs"), # Placeholder for dynamic inputs
+          actionButton("predict", "Predict Outcome") # Button to trigger prediction
         ),
-
         mainPanel(
           plotOutput("model_plot"),
-          textOutput("predictions")
+          textOutput("predictions"),
+          textOutput("outcome") # Display the prediction outcome
         )
       )
     ),
@@ -161,8 +190,21 @@ ui <- fluidPage(
   )
 )
 
-server <- function(input, output) {
-
+server <- function(input, output, session) {
+  
+  # Dynamic input boxes for user input based on selected stats
+  output$dynamicInputs <- renderUI({
+    req(input$stats) # Ensure stats are selected
+    lapply(input$stats, function(stat) {
+      numericInput(
+        inputId = paste0("input_", stat),
+        label = paste("Enter per-set value for", stat),
+        value = 0
+      )
+    })
+  })
+  
+  # Render mosaic for model fit
   output$model_plot <- renderPlot({
     team_model <- team_training %>%
       team_vballmodel(vars = input$stats)
@@ -171,6 +213,7 @@ server <- function(input, output) {
       autoplot()
   })
   
+  # Render model interpretation
   output$predictions <- renderText({
     tidy_team_model <- team_training %>%
       team_vballmodel(vars = input$stats) %>%
@@ -178,7 +221,32 @@ server <- function(input, output) {
     
     interpretmodel(tidy_team_model)
   })
+  
+  # Predict the outcome based on user inputs
+  observeEvent(input$predict, {
+    req(input$stats) # Ensure stats are selected
+    
+    # Collect user inputs dynamically
+    user_inputs <- sapply(input$stats, function(stat) {
+      input[[paste0("input_", stat)]]
+    })
+    names(user_inputs) <- input$stats # Ensure names match stats
+    
+    # Fit the model
+    tidy_team_model <- team_training %>%
+      team_vballmodel(vars = input$stats) %>%
+      tidy()
+    
+    # Predict using the generalized function
+    outcome <- predictWL(tidy_team_model, user_inputs)
+    
+    # Display prediction
+    output$outcome <- renderText({
+      paste("Predicted model outcome:", outcome)
+    })
+  })
 }
 
-# Run the application 
+# Run app
 shinyApp(ui = ui, server = server)
+

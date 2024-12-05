@@ -178,14 +178,14 @@ mtext3d("Logistic Model Predictions (W/L) for 2021-2024 Macalester Women's Volle
 
 
 # MAKING THE LEGEND
-points3d(x = 0.3, y = 0, z = 4, col = "darkgreen", size = 10)  
-points3d(x = 0.3, y = 0, z = 3, col = "firebrick2", size = 10) 
-points3d(x = 0.3, y = 0, z = 2, col = "#5e7454", size = 10) 
-points3d(x = 0.3, y = 0, z = 1, col = "#ba6456", size = 10) 
-text3d(x = 0.3, y = 0, z = 4, texts = "win, win predicted", cex = 1, adj = -.1)  
-text3d(x = 0.3, y = 0, z = 3, texts = "loss, loss predicted", cex = 1, adj = -.1)  
-text3d(x = 0.3, y = 0, z = 2, texts = "win, loss predicted", cex = 1, adj = -.1)
-text3d(x = 0.3, y = 0, z = 1, texts = "loss, win predicted", cex = 1, adj = -.1)
+# points3d(x = 0.3, y = 0, z = 4, col = "darkgreen", size = 10)  
+# points3d(x = 0.3, y = 0, z = 3, col = "firebrick2", size = 10) 
+# points3d(x = 0.3, y = 0, z = 2, col = "#5e7454", size = 10) 
+# points3d(x = 0.3, y = 0, z = 1, col = "#ba6456", size = 10) 
+# text3d(x = 0.3, y = 0, z = 4, texts = "win, win predicted", cex = 1, adj = -.1)  
+# text3d(x = 0.3, y = 0, z = 3, texts = "loss, loss predicted", cex = 1, adj = -.1)  
+# text3d(x = 0.3, y = 0, z = 2, texts = "win, loss predicted", cex = 1, adj = -.1)
+# text3d(x = 0.3, y = 0, z = 1, texts = "loss, win predicted", cex = 1, adj = -.1)
 ```
 
 > The plot doesn't render in html but trust me if you're reading this, it's awesome
@@ -621,11 +621,10 @@ interpretmodel <- function(tidy_model) {
         paste0(
           "When controlling all other variables, for each one-unit increase in ", term,
           ", the probability of winning decreases by approximately ",
-          abs(round((odds_change / (odds_change + 1)) * 100, 2), "%. ", term, " has a p-value of ", round(p.value, 6), "."
+          abs(round((odds_change / (odds_change + 1)) * 100, 2)), "%. ", term, " has a p-value of ", round(p.value, 6), "."
         )
       )
     )
-  )
     
   
   # Return only the interpretations
@@ -638,23 +637,30 @@ interpretmodel(tidymodel) # example call
 
 ```{r}
 # in-sample stats function
-insampleconf <- function(model, df) {
+insampleclass <- function(model, df) {
   in_sample_classifications <- model %>%
   augment(new_data = df) %>%
   mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
   mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
   mutate(.pred_class = as.factor(.pred_class)) %>%
   mutate(.pred_class = droplevels(.pred_class)) %>%
-  mutate(`W/L` = factor(`W/L`, levels = c("L", "W"))) # DON'T ASK ME ABOUT THIS I SPENT HOURS TRYING TO FIGURE OUT WHY IT WAS BEING WEIRD WITH THE LEVELS AND THIS IS A SOLUTION
+  mutate(`W/L` = factor(`W/L`, levels = c("L", "W"))) %>% # DON'T ASK ME ABOUT THIS I SPENT HOURS TRYING TO FIGURE OUT WHY IT WAS BEING WEIRD WITH THE LEVELS AND THIS IS A SOLUTION
+    mutate(Match = if_else(.pred_class == `W/L`, TRUE, FALSE))
   
-  confmat <- in_sample_classifications %>% 
-    conf_mat(truth = `W/L`, estimate = .pred_class)
+
   
   
-  return(confmat) # returns in-sample confusion matrix
+  return(in_sample_classifications) # returns in-sample confusion matrix
 }
 
-conf <- insampleconf(model, multyears) # example call (used for plotting and accuracy)
+insampleconfmatrix <- function(class){
+    confmat <- in_sample_classifications %>% 
+    conf_mat(truth = `W/L`, estimate = .pred_class)
+    return(confmat)
+}
+
+class <- insampleclass(model, multyears) # example call (used for plotting and accuracy)
+confmatrix <- insampleconfmatrix(class) # example call
 ```
 
 ```{r}
@@ -664,7 +670,7 @@ plotinsampleconf <- function(confmat) {
     autoplot()
 }
 
-plotinsampleconf(conf) # example call
+plotinsampleconf(confmatrix) # example call
 ```
 
 ```{r}
@@ -675,7 +681,7 @@ modelaccuracy <- function(confmat) {
   return(accuracy) # returns in-sample accuracy
 }
 
-modelaccuracy(conf) # example call
+modelaccuracy(confmatrix) # example call
 ```
 
 ```{r}
@@ -685,7 +691,7 @@ predictnewdata <- function(model, newdata) {
     augment(new_data = newdata) %>%
     mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
     mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
-    mutate(Match = if_else(.pred_class == `W/L`, TRUE, FALSE))
+    mutate(Match = if_else(.pred_class == `W/L`, TRUE, FALSE)) %>%
   return(predictions) # returns predictions
 }
 
@@ -713,6 +719,39 @@ newmodelaccuracy(predictnewdata(model, vballdata(2024))) # example call
 ```
 
 ```{r}
+# function to predict win/loss on user input
+predictWL <- function(tidymodel, a, b, c){
+  intercept <- as.numeric(tidymodel[1,2])
+  acoeff <- as.numeric(tidymodel[2,2]) 
+  bcoeff <- as.numeric(tidymodel[3,2])
+  ccoeff <- as.numeric(tidymodel[4,2])
+  value <- intercept + a * acoeff + b * bcoeff + c * ccoeff
+  prob <- exp(value) / (1 + exp(value))
+  winloss <- ifelse(prob > 0.5, "Win", "Loss")
+  return(winloss)
+}
+
+predictWL(tidymodel, 30.1, 1.3333333, 2.3333333) # example call
+```
+
+```{r}
+meanvalues <- function(df){
+  means <- df %>%
+    summarize(across(where(is.numeric), mean))
+  return(means)
+}
+meanvalues(multyears) # example call
+
+rangevalues <- function(df){
+  ranges <- df %>%
+    mutate()
+  return(ranges)
+}
 
 ```
+
+
+
+
+
 
