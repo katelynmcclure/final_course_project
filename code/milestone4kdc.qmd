@@ -26,7 +26,8 @@ year_to_df <- function(link){
   cleaner_tables <- map(tables, ~ as.data.frame(.x) %>% row_to_names(1) %>% select(-c(`#`, `Bio Link`)))
   
   return_tables <- cleaner_tables[[1]] %>%
-    left_join(cleaner_tables[[2]], by = join_by("Player", "SP")) %>%
+    rename(off_attempts = TA) %>%
+    left_join(cleaner_tables[[2]] %>% rename(def_attempts = TA), by = join_by("Player", "SP")) %>%
     mutate(
       year = str_sub(link, nchar(link) - 3),
       Player = str_extract(Player, ".*")) %>%
@@ -40,16 +41,15 @@ full_senior_stats <- map(year_links, year_to_df) %>%
 ```
 
 ```{r cleaning}
-starters = c("Geber, Stephanie", "Preston, Adisa", "Williams, Torrance")
-
 clean_senior_stats <- full_senior_stats %>%
   mutate(across(!Player, as.numeric))
 ```
 
 ```{r viz}
 PCT_plot <- clean_senior_stats %>%
+  filter(off_attempts > 50) %>%
   ggplot(aes(x = year, y = PCT)) +
-  geom_point(aes(size = K+E, color = Player), show.legend = FALSE) +
+  geom_point(aes(size = off_attempts, color = Player), show.legend = FALSE) +
   geom_line(aes(color = Player),show.legend = FALSE) +
   labs(
     title = "Hitting % = (kills-errors)/attacks",
@@ -58,8 +58,9 @@ PCT_plot <- clean_senior_stats %>%
   theme_bw()
 
 Rec_plot <- clean_senior_stats %>%
+  filter(def_attempts > 50) %>%
   ggplot(aes(x = year, y = `Rec%`)) +
-  geom_point(aes(size = TA.y, color = Player), show.legend = FALSE) +
+  geom_point(aes(size = def_attempts, color = Player), show.legend = FALSE) +
   geom_line(aes(color = Player),show.legend = FALSE) +
   labs(
     title = "Rec % = Rec/(Rec + Rec errors)",
