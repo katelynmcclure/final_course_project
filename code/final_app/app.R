@@ -93,10 +93,16 @@ insampleconf <- function(model, df) {
     mutate(`W/L` = factor(`W/L`, levels = c("L", "W"))) # DON'T ASK ME ABOUT THIS I SPENT HOURS TRYING TO FIGURE OUT WHY IT WAS BEING WEIRD WITH THE LEVELS AND THIS IS A SOLUTION
   
   confmat <- in_sample_classifications %>% 
-    conf_mat(truth = `W/L`, estimate = .pred_class)
+    conf_mat(truth = `W/L`, estimate = .pred_class) 
   
   
   return(confmat) # returns in-sample confusion matrix
+}
+
+insampleconfmatrix <- function(class){
+  confmat <- class %>% 
+    conf_mat(truth = `W/L`, estimate = .pred_class)
+  return(confmat)
 }
 
 predictWL <- function(tidymodel, inputs) {
@@ -170,19 +176,21 @@ ui <- fluidPage(
       "Model", 
       sidebarLayout(
         sidebarPanel(
+          h4("Choose stats to include in the model:"),
           checkboxGroupInput(
             "stats",
-            "Choose stats to include in the model",
+            NULL,
             team_training %>% select(where(is.numeric)) %>% names(),
             selected = c("PCT", "SA", "SE")
           ),
+          h4("Predict Match Outcome:"),
           uiOutput("dynamicInputs"), # Placeholder for dynamic inputs
-          actionButton("predict", "Predict Outcome") # Button to trigger prediction
+          actionButton("predict", "Predict") # Button to trigger prediction
         ),
         mainPanel(
           plotOutput("model_plot"),
-          textOutput("predictions"),
-          textOutput("outcome") # Display the prediction outcome
+          uiOutput("predictions"),
+          htmlOutput("outcome") # Display the prediction outcome
         )
       )
     ),
@@ -210,17 +218,26 @@ server <- function(input, output, session) {
       team_vballmodel(vars = input$stats)
     
     insampleconf(team_model, team_training) %>% 
-      autoplot()
+      autoplot() +
+      labs(title = "Mosaic Plot of Accuracy") 
   })
   
   # Render model interpretation
-  output$predictions <- renderText({
+  output$predictions <- renderUI({
     tidy_team_model <- team_training %>%
       team_vballmodel(vars = input$stats) %>%
       tidy()
     
-    interpretmodel(tidy_team_model)
+    interpretations <- interpretmodel(tidy_team_model)
+    
+    # Wrap each interpretation in a styled HTML tag
+    HTML(paste0(
+      "<ul>",
+      paste0("<li>", interpretations, "</li>", collapse = ""),
+      "</ul>"
+    ))
   })
+
   
   # Predict the outcome based on user inputs
   observeEvent(input$predict, {
