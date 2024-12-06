@@ -124,10 +124,10 @@ predictWL <- function(tidymodel, inputs) {
   prob <- exp(linear_predictor) / (1 + exp(linear_predictor))
   
   # Classify as "Win" or "Loss"
-  winloss <- ifelse(prob > 0.5, "Win", "Loss")
+  winloss <- ifelse(prob > 0.5, "WIN", "LOSS")
   
   # Final statement
-  statement <- paste0("The predicted outcome is a ", winloss, " with a ", round(prob * 100, 2), "% probability of winning the match.")
+  statement <- paste0(winloss, " (", round(prob * 100, 2), "% probability of winning the match)")
   return(statement)
 }
 
@@ -185,12 +185,13 @@ ui <- fluidPage(
           ),
           h4("Predict Match Outcome:"),
           uiOutput("dynamicInputs"), # Placeholder for dynamic inputs
-          actionButton("predict", "Predict") # Button to trigger prediction
+          actionButton("predict", "Predict"), # Button to trigger prediction
+          htmlOutput("outcome") 
         ),
         mainPanel(
+          htmlOutput("code_book"),
           plotOutput("model_plot"),
-          uiOutput("predictions"),
-          htmlOutput("outcome") # Display the prediction outcome
+          uiOutput("predictions")
         )
       )
     ),
@@ -199,7 +200,47 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+
+  output$code_book <- renderUI({
+    HTML("
+    <b>Volleyball Stat Abbreviations</b><br>
+    <table>
+      <tr>
+        <td>SP = sets played </td>
+        <td>TB = total blocks </td>
+      </tr>
+      <tr>
+        <td>K = kills</td>
+        <td>BHE = ball handling errors </td>
+      </tr>
+      <tr>
+        <td>E = errors </td>
+        <td>BS = block solos </td>
+      </tr>
+      <tr>
+        <td>TA = total attempts </td>
+        <td>BA = block assists </td>
+      </tr>
+      <tr>
+        <td>PCT = hitting percentage &nbsp; &nbsp;</td>
+        <td>RE = receiving errors </td>
+      </tr>
+      <tr>
+        <td>AST = assists </td>
+        <td>DIG = digs </td>
+      </tr>
+      <tr>
+        <td>SA = service aces </td>
+        <td>SE = service errors </td>
+      </tr>
+      <td> &nbsp; </td>
+        <td> &nbsp; </td>
+    </table>
+  ")
+  })
   
+  
+    
   # Dynamic input boxes for user input based on selected stats
   output$dynamicInputs <- renderUI({
     req(input$stats) # Ensure stats are selected
@@ -215,11 +256,12 @@ server <- function(input, output, session) {
   # Render mosaic for model fit
   output$model_plot <- renderPlot({
     team_model <- team_training %>%
-      team_vballmodel(vars = input$stats)
+      team_vballmodel(vars = input$stats) # create model with selected variables
     
     insampleconf(team_model, team_training) %>% 
       autoplot() +
-      labs(title = "Mosaic Plot of Accuracy") 
+      labs(subtitle = "Mosaic Plot of Model Accuracy") +
+      theme(plot.subtitle = element_text(size = 20, face = "bold"))
   })
   
   # Render model interpretation
