@@ -145,7 +145,8 @@ plotinsampleconf(confmatrix) # example call
 # calculating accuracy of model
 modelaccuracy <- function(confmat) {
   accuracy <- summary(confmat, event_level = "second") %>%
-    filter(.metric == "accuracy")
+    filter(.metric == "accuracy") %>%
+    pull(.estimate)
   return(accuracy) # returns in-sample accuracy
 }
 

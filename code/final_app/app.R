@@ -90,7 +90,7 @@ insampleconf <- function(model, df) {
     mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
     mutate(.pred_class = as.factor(.pred_class)) %>%
     mutate(.pred_class = droplevels(.pred_class)) %>%
-    mutate(`W/L` = factor(`W/L`, levels = c("L", "W"))) # DON'T ASK ME ABOUT THIS I SPENT HOURS TRYING TO FIGURE OUT WHY IT WAS BEING WEIRD WITH THE LEVELS AND THIS IS A SOLUTION
+    mutate(`W/L` = factor(`W/L`, levels = c("L", "W"))) 
   
   confmat <- in_sample_classifications %>% 
     conf_mat(truth = `W/L`, estimate = .pred_class) 
@@ -103,6 +103,21 @@ insampleconfmatrix <- function(class){
   confmat <- class %>% 
     conf_mat(truth = `W/L`, estimate = .pred_class)
   return(confmat)
+}
+
+modelaccuracy <- function(model, df) {
+  in_sample_classifications <- model %>%
+    augment(new_data = df) %>%
+    mutate(.pred_class = ifelse(is.na(.pred_class), "W", .pred_class)) %>%
+    mutate(.pred_class = if_else(.pred_class == "1", "L", "W")) %>%
+    mutate(.pred_class = as.factor(.pred_class)) %>%
+    mutate(.pred_class = droplevels(.pred_class)) %>%
+    mutate(`W/L` = factor(`W/L`, levels = c("L", "W")))
+  accuracy <- in_sample_classifications %>%
+    metrics(truth = `W/L`, estimate = .pred_class) %>%
+    filter(.metric == "accuracy") %>%
+    pull(.estimate)
+  return(accuracy)
 }
 
 predictWL <- function(tidymodel, inputs) {
@@ -133,14 +148,6 @@ predictWL <- function(tidymodel, inputs) {
 
 
 #### Number Below
-
-
-# calculating accuracy of model
-modelaccuracy <- function(confmat) {
-  accuracy <- summary(confmat, event_level = "second") %>%
-    filter(.metric == "accuracy")
-  return(accuracy) # returns in-sample accuracy
-}
 
 # function to predict new data
 predictnewdata <- function(model, newdata) {
@@ -191,6 +198,7 @@ ui <- fluidPage(
         mainPanel(
           htmlOutput("code_book"),
           plotOutput("model_plot"),
+          div(uiOutput("accuracy"), style = "text-align: center;"),
           uiOutput("predictions")
         )
       )
@@ -200,7 +208,8 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-
+  
+  # Codebook for volleyball stats
   output$code_book <- renderUI({
     HTML("
     <b>Volleyball Stat Abbreviations</b><br>
@@ -240,7 +249,6 @@ server <- function(input, output, session) {
   })
   
   
-    
   # Dynamic input boxes for user input based on selected stats
   output$dynamicInputs <- renderUI({
     req(input$stats) # Ensure stats are selected
@@ -262,6 +270,12 @@ server <- function(input, output, session) {
       autoplot() +
       labs(subtitle = "Mosaic Plot of Model Accuracy") +
       theme(plot.subtitle = element_text(size = 20, face = "bold"))
+  })
+  
+  output$accuracy <- renderUI({
+    roundedaccuracy <- round(modelaccuracy(team_training %>% team_vballmodel(vars = input$stats), team_training), 4)
+    percentaccuracy <- roundedaccuracy * 100
+    HTML(paste0("<b>Model Accuracy: ", percentaccuracy, "%</b>"))
   })
   
   # Render model interpretation
