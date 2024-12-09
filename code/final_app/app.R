@@ -179,6 +179,8 @@ newmodelaccuracy <- function(predictions) {
 ui <- fluidPage(
   navbarPage(
     "Macalester Women's Volleyball Statistical Analysis",
+    tabPanel("Intro",
+             mainPanel(h4("We should put a few paragraphs of introductory text here maybe :)"))),
     tabPanel(
       "Model", 
       sidebarLayout(
