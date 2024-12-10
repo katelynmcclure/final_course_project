@@ -42,31 +42,34 @@ full_senior_stats <- map(year_links, year_to_df) %>%
 
 ```{r cleaning}
 clean_senior_stats <- full_senior_stats %>%
-  mutate(across(!Player, as.numeric))
+  mutate(across(!Player, as.numeric)) %>%
+  mutate(anon_player_id = as.factor(match(Player, seniors)))
 ```
 
 ```{r viz}
-PCT_plot <- clean_senior_stats %>%
+clean_senior_stats %>%
   filter(off_attempts > 50) %>%
-  ggplot(aes(x = year, y = PCT)) +
-  geom_point(aes(size = off_attempts, color = Player), show.legend = FALSE) +
-  geom_line(aes(color = Player),show.legend = FALSE) +
+  ggplot(aes(x = year, y = PCT, color = anon_player_id)) +
+  geom_point(aes(size = off_attempts)) +
+  geom_line() +
   labs(
-    title = "Hitting % = (kills-errors)/attacks",
+    title = "Senior Hitting Percentage Over Time",
     x = "Year",
-    y = "Hitting %") +
+    y = "Hitting %",
+    color = "Player ID",
+    size = "Offensive Attempts") +
   theme_bw()
 
-Rec_plot <- clean_senior_stats %>%
+clean_senior_stats %>%
   filter(def_attempts > 50) %>%
-  ggplot(aes(x = year, y = `Rec%`)) +
-  geom_point(aes(size = def_attempts, color = Player), show.legend = FALSE) +
-  geom_line(aes(color = Player),show.legend = FALSE) +
+  ggplot(aes(x = year, y = `Rec%`, color = anon_player_id)) +
+  geom_point(aes(size = def_attempts)) +
+  geom_line() +
   labs(
-    title = "Rec % = Rec/(Rec + Rec errors)",
+    title = "Senior Reception Percentage Over Time",
     x = "Year",
-    y = "Reception %") +
+    y = "Reception %",
+    color = "Player ID",
+    size = "Defensive Attempts") +
   theme_bw()
-
-cowplot::plot_grid(PCT_plot, Rec_plot, ncol = 1)
 ```
