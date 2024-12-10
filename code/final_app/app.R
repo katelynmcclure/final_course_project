@@ -5,6 +5,7 @@ library(shiny)
 library(tidyverse)
 library(rvest)
 library(tidymodels)
+library(janitor)
 
 # Access data from Mac Athletics website
 team_vballdata <- function(year) {
@@ -174,6 +175,42 @@ newmodelaccuracy <- function(predictions) {
   return(accuracy$accuracy) 
 }
 
+
+#
+#
+#
+#### Static page functions
+year_links <- str_c("https://athletics.macalester.edu/sports/womens-volleyball/stats/", c(2021, 2022, 2023, 2024))
+
+seniors <- c("Wooten, Gwen", "Preston, Adisa", "Geber, Stephanie", "Norton, Nicole", "Galer, Grace", "Williams, Torrance", "MacInnis, Jill")
+
+year_to_df <- function(link){
+  all_tables <- read_html(link) %>%
+    html_table()
+  
+  tables <- c(all_tables[2], all_tables[3])
+  cleaner_tables <- map(tables, ~ as.data.frame(.x) %>% row_to_names(1) %>% select(-c(`#`, `Bio Link`)))
+  
+  return_tables <- cleaner_tables[[1]] %>%
+    rename(off_attempts = TA) %>%
+    left_join(cleaner_tables[[2]] %>% rename(def_attempts = TA), by = join_by("Player", "SP")) %>%
+    mutate(
+      year = str_sub(link, nchar(link) - 3),
+      Player = str_extract(Player, ".*")) %>%
+    filter(Player %in% seniors)
+  
+  return(return_tables)
+}
+
+full_senior_stats <- map(year_links, year_to_df) %>%
+  list_rbind()
+
+clean_senior_stats <- full_senior_stats %>%
+  mutate(across(!Player, as.numeric)) %>%
+  mutate(anon_player_id = as.factor(match(Player, seniors)))
+
+####
+
 ## App
 
 ui <- fluidPage(
@@ -205,7 +242,12 @@ ui <- fluidPage(
         )
       )
     ),
-    tabPanel("Static")
+    tabPanel("Static",
+             mainPanel(
+               plotOutput("static_sp"),
+               plotOutput("static_hitting"),
+               plotOutput("static_reception")
+             ))
   )
 )
 
@@ -319,6 +361,50 @@ server <- function(input, output, session) {
     output$outcome <- renderText({
       paste("Predicted model outcome:", outcome)
     })
+  })
+  
+  output$static_hitting <- renderPlot({
+    clean_senior_stats %>%
+      filter(off_attempts > 50) %>%
+      ggplot(aes(x = year, y = PCT, color = anon_player_id)) +
+      geom_point(aes(size = off_attempts)) +
+      geom_line() +
+      labs(
+        title = "Senior Hitting Percentage Over Time",
+        x = "Year",
+        y = "Hitting %",
+        color = "Player ID",
+        size = "Offensive Attempts") +
+      theme_bw()
+  })
+  
+  output$static_reception <- renderPlot({
+    clean_senior_stats %>%
+      filter(def_attempts > 50) %>%
+      ggplot(aes(x = year, y = `Rec%`, color = anon_player_id)) +
+      geom_point(aes(size = def_attempts)) +
+      geom_line() +
+      labs(
+        title = "Senior Reception Percentage Over Time",
+        x = "Year",
+        y = "Reception %",
+        color = "Player ID",
+        size = "Defensive Attempts") +
+      theme_bw()
+  })
+  
+  output$static_sp <- renderPlot({
+    clean_senior_stats %>%
+      ggplot(aes(x = year, y = SP, color = anon_player_id)) +
+      geom_point() +
+      geom_line() +
+      labs(
+        title = "Senior Sets Played Over Time",
+        x = "Year",
+        y = "Sets Played",
+        color = "Player ID",
+        size = "Defensive Attempts") +
+      theme_bw()
   })
 }
 
